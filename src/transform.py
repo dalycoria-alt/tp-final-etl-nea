@@ -338,7 +338,31 @@ def construir_indice_rubros(paquetes_rubro):
     #   - Para el rubro con mayor valor:  max(dic, key=dic.get)
     #   - El total del año es la suma de los 4 rubros: sum(dic.values())
     #   - Descartá los valores None antes de sumar.
-    raise NotImplementedError("TODO 8a: implementá construir_indice_rubros()")
+    #raise NotImplementedError("TODO 8a: implementá construir_indice_rubros()")
+    for paquete in paquetes_rubro:
+        provincia = paquete["provincia"]
+        rubros = paquete["orden_columnas"]
+
+        for fila_cruda in paquete["data"]:
+            anio = extraer_anio(fila_cruda[0])
+            valores = fila_cruda[1:]
+
+            # Diccionario {rubro: valor}, descartando los None
+            valor_por_rubro = {
+                rubro: valor
+                for rubro, valor in zip(rubros, valores)
+                if valor is not None
+            }
+            if not valor_por_rubro:
+                continue  # año sin ningún dato: no hay nada que indexar
+
+            total_anio = sum(valor_por_rubro.values())
+            primarios = valor_por_rubro.get(config.RUBRO_PRIMARIOS)
+
+            indice[(provincia, anio)] = {
+                "rubro_principal": max(valor_por_rubro, key=valor_por_rubro.get),
+                "pp_participacion_pct": calcular_participacion(primarios, total_anio),
+            }
     # ---------------------------------------------------------------------
 
     logging.info("  índice de rubros: %s claves (provincia, año)", len(indice))
@@ -356,7 +380,18 @@ def unir_con_rubros(filas, indice_rubros):
     # TODO 8b -------------------------------------------------------------
     # Para cada fila, buscá indice_rubros.get((provincia, anio)) y asigná
     # 'rubro_principal' y 'pp_participacion_pct'. Si no hay match, None.
-    raise NotImplementedError("TODO 8b: implementá unir_con_rubros()")
+    #raise NotImplementedError("TODO 8b: implementá unir_con_rubros()")
+    for fila in filas:
+        datos_rubro = indice_rubros.get((fila["provincia"], fila["anio"]))
+        if datos_rubro is None:
+            # LEFT JOIN: sin match la fila se conserva con columnas vacías
+            fila["rubro_principal"] = None
+            fila["pp_participacion_pct"] = None
+        else:
+            fila["rubro_principal"] = datos_rubro["rubro_principal"]
+            fila["pp_participacion_pct"] = datos_rubro["pp_participacion_pct"]
+
+    return filas
     # ---------------------------------------------------------------------
 
 
