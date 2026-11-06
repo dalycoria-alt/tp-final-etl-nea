@@ -178,3 +178,8 @@ MINIMO_FILAS_ESPERADAS = 1000   # 4 provincias x 11 destinos x 32 años = 1408
 VALOR_MAXIMO_RAZONABLE = 10000  # millones de USD: un valor mayor es sospechoso
 # Nombre del rubro que se usa para calcular pp_participacion_pct
 RUBRO_PRIMARIOS = "Productos primarios"
+
+# Metadatos para el resumen JSON
+NOMBRE_DATASET = "Exportaciones del NEA por provincia y país de destino"
+FUENTE = "API de Series de Tiempo de datos.gob.ar (INDEC), datasets 357.1 y 350.1"
+UNIDAD = "millones de dólares FOB"

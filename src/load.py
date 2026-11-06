@@ -62,7 +62,11 @@ def chequear_unicidad(filas):
     # TODO 9 --------------------------------------------------------------
     # Pista: es el patrón del set que viste en la Clase 3. Armá la lista de
     # claves (una tupla por fila) y compará len(lista) con len(set(lista)).
-    raise NotImplementedError("TODO 9: implementá chequear_unicidad()")
+    #raise NotImplementedError("TODO 9: implementá chequear_unicidad()")
+    claves = [(f["provincia"], f["anio"], f["destino"]) for f in filas]
+    duplicados = len(claves) - len(set(claves))
+    ok = duplicados == 0
+    return ok, f"unicidad: {duplicados} filas duplicadas por (provincia, anio, destino)"
     # ---------------------------------------------------------------------
 
 
@@ -75,7 +79,14 @@ def chequear_rangos(filas):
     # TODO 10 -------------------------------------------------------------
     # Pista: una comprensión de lista con la condición al final te da
     # directamente las filas fuera de rango; después mirás cuántas son.
-    raise NotImplementedError("TODO 10: implementá chequear_rangos()")
+    #raise NotImplementedError("TODO 10: implementá chequear_rangos()")
+    fuera_de_rango = [
+        f for f in filas
+        if f["valor_musd"] < 0 or f["valor_musd"] > config.VALOR_MAXIMO_RAZONABLE
+    ]
+    ok = len(fuera_de_rango) == 0
+    return ok, (f"rangos: {len(fuera_de_rango)} valores fuera de "
+                f"[0, {config.VALOR_MAXIMO_RAZONABLE}]")
     # ---------------------------------------------------------------------
 
 
@@ -171,7 +182,35 @@ def construir_resumen(filas, detalle_checks):
     #   - Para provincias únicas y ordenadas: sorted({f["provincia"] for f in filas})
     #   - Para la fecha: datetime.now().strftime("%Y-%m-%d %H:%M")
     #   - Podés agregar más claves si querés (suma puntos en la rúbrica).
-    raise NotImplementedError("TODO 11: implementá construir_resumen()")
+    #raise NotImplementedError("TODO 11: implementá construir_resumen()")
+    valores = [f["valor_musd"] for f in filas]
+    anios = [f["anio"] for f in filas]
+
+    # Con lista vacía min()/max() rompen: dejamos las estadísticas en None
+    if valores:
+        estadisticas = {
+            "minimo": min(valores),
+            "maximo": max(valores),
+            "promedio": round(sum(valores) / len(valores), 2),
+        }
+        periodo = {"desde": min(anios), "hasta": max(anios)}
+    else:
+        estadisticas = {"minimo": None, "maximo": None, "promedio": None}
+        periodo = {"desde": None, "hasta": None}
+
+    return {
+        "dataset": config.NOMBRE_DATASET,
+        "fuente": config.FUENTE,
+        "unidad": config.UNIDAD,
+        "generado": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "filas": len(filas),
+        "columnas": len(COLUMNAS),
+        "periodo": periodo,
+        "provincias": sorted({f["provincia"] for f in filas}),
+        "destinos": sorted({f["destino"] for f in filas}),
+        "valor_musd": estadisticas,
+        "quality_checks": detalle_checks,
+    }
     # ---------------------------------------------------------------------
 
 
@@ -183,7 +222,17 @@ def guardar_resumen(resumen, carpeta=None, nombre=None):
     """
     # TODO 12a ------------------------------------------------------------
     # Muy parecido a guardar_csv(), pero con json.dump().
-    raise NotImplementedError("TODO 12a: implementá guardar_resumen()")
+    #raise NotImplementedError("TODO 12a: implementá guardar_resumen()")
+    carpeta = carpeta or config.DIR_PROCESSED
+    nombre = nombre or config.ARCHIVO_SALIDA_JSON
+    os.makedirs(carpeta, exist_ok=True)
+    ruta = os.path.join(carpeta, nombre)
+
+    with open(ruta, "w", encoding="utf-8") as f:
+        json.dump(resumen, f, ensure_ascii=False, indent=2)
+
+    logging.info("  JSON: %s", ruta)
+    return ruta
     # ---------------------------------------------------------------------
 
 
@@ -196,7 +245,22 @@ def escribir_log_corrida(resumen, carpeta=None, nombre=None):
         2026-08-02 14:30 | OK | 1408 filas | 1993-2024
     """
     # TODO 12b ------------------------------------------------------------
-    raise NotImplementedError("TODO 12b: implementá escribir_log_corrida()")
+    #raise NotImplementedError("TODO 12b: implementá escribir_log_corrida()")
+    carpeta = carpeta or config.DIR_LOGS
+    nombre = nombre or config.ARCHIVO_LOG
+    os.makedirs(carpeta, exist_ok=True)
+    ruta = os.path.join(carpeta, nombre)
+
+    periodo = resumen["periodo"]
+    linea = (f"{resumen['generado']} | OK | {resumen['filas']} filas | "
+             f"{periodo['desde']}-{periodo['hasta']}\n")
+
+    # Modo "a": el log es un historial, cada corrida suma una línea
+    with open(ruta, "a", encoding="utf-8") as f:
+        f.write(linea)
+
+    logging.info("  LOG: %s", ruta)
+    return ruta
     # ---------------------------------------------------------------------
 
 
