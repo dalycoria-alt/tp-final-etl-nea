@@ -255,7 +255,20 @@ def agregar_variacion_interanual(filas):
     #      y calcular_variacion() ya sabe qué hacer con eso.
     #
     # Usar un dict como índice evita recorrer toda la lista por cada fila.
-    raise NotImplementedError("TODO 6: implementá agregar_variacion_interanual()")
+    #raise NotImplementedError("TODO 6: implementá agregar_variacion_interanual()")
+    # Primera pasada: índice para encontrar el año previo sin recorrer la lista
+    indice = {}
+    for fila in filas:
+        clave = (fila["provincia"], fila["destino"], fila["anio"])
+        indice[clave] = fila["valor_musd"]
+
+    # Segunda pasada: comparar cada fila contra el año anterior de su serie
+    for fila in filas:
+        clave_anterior = (fila["provincia"], fila["destino"], fila["anio"] - 1)
+        valor_anterior = indice.get(clave_anterior)
+        fila["var_interanual_pct"] = calcular_variacion(fila["valor_musd"], valor_anterior)
+
+    return filas
     # ---------------------------------------------------------------------
 
 
