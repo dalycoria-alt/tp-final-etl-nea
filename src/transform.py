@@ -229,7 +229,11 @@ def calcular_variacion(actual, anterior):
     Devolvé None si 'anterior' es None o cero. Redondeá a 2 decimales.
     """
     # TODO 5 --------------------------------------------------------------
-    raise NotImplementedError("TODO 5: implementá calcular_variacion()")
+    #raise NotImplementedError("TODO 5: implementá calcular_variacion()")
+    # Sin año anterior (o con valor cero) la variación no está definida
+    if anterior is None or anterior == 0 or actual is None:
+        return None
+    return round((actual - anterior) / anterior * 100, 2)
     # ---------------------------------------------------------------------
 
 
